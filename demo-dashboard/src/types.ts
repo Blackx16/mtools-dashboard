@@ -76,11 +76,33 @@ export interface HeroKPIs {
   audience_growth: { total: number; net_change: number };
 }
 
+export interface MarketerHeroKPIs {
+  reach: { value: number; change: number };
+  engagements: { value: number; change: number };
+  engagement_rate: { value: number; change: number };
+  followers_gained: { value: number; change: number };
+}
+
+export interface ChannelPerformanceRow {
+  platform: PlatformType;
+  name: string;
+  impressions: number;
+  reach: number | null;
+  engagements: number;
+  engagement_rate: number;
+  followers: number;
+}
+
 export interface TimeSeriesDataPoint {
   date: string;
   impressions: number;
   engagements: number;
+  reach?: number;
   rate: number;
+  prev_impressions?: number;
+  prev_engagements?: number;
+  prev_reach?: number;
+  prev_rate?: number;
   by_platform: Record<PlatformType, number>;
 }
 

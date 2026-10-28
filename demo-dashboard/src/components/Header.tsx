@@ -6,14 +6,12 @@ import {
   Calendar, 
   Filter, 
   Download, 
-  CheckCircle2, 
   ChevronDown, 
   FileText, 
   FileCode,
   Check,
-  Sparkles,
   HelpCircle,
-  Compass
+  Sliders
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -24,9 +22,8 @@ interface HeaderProps {
   selectedPlatforms: PlatformType[];
   onTogglePlatform: (platform: PlatformType) => void;
   onResetPlatforms?: () => void;
-  onRunQuickSetup: () => void;
+  onOpenIntegrations: () => void;
   onOpenTour: () => void;
-  onOpenGuide: () => void;
 }
 
 const ACTIVE_PLATFORM_CONFIG: { id: PlatformType; label: string; color: string }[] = [
@@ -51,9 +48,8 @@ export function Header({
   selectedPlatforms,
   onTogglePlatform,
   onResetPlatforms,
-  onRunQuickSetup,
+  onOpenIntegrations,
   onOpenTour,
-  onOpenGuide,
 }: HeaderProps) {
   const [dateDropdownOpen, setDateDropdownOpen] = useState(false);
   const [platformDropdownOpen, setPlatformDropdownOpen] = useState(false);
@@ -185,9 +181,6 @@ ${relevantPosts
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">mTools</span>
-                <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <CheckCircle2 className="w-2.5 h-2.5 mr-1 text-emerald-600" /> Authentik SSO
-                </span>
               </div>
               
               {/* Brand Selector Dropdown */}
@@ -342,41 +335,30 @@ ${relevantPosts
               </div>
             </div>
 
-            {/* 3. 1-Click Quick Setup Button */}
+            {/* 3. Integrations Modal Button */}
             <button
-              id="quick-setup-btn"
+              id="integrations-btn"
               type="button"
-              onClick={onRunQuickSetup}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
-              title="1-Click Simulated Setup: Connect all 4 channels instantly"
+              onClick={onOpenIntegrations}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-medium text-neutral-700 transition-all shadow-2xs cursor-pointer"
+              title="Manage Channel Integrations"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-              <span>Quick Setup</span>
+              <Sliders className="w-3.5 h-3.5 text-neutral-500" />
+              <span>Integrations</span>
             </button>
 
-            {/* 4. Interactive Tour Button */}
+            {/* 4. Guided Help Button */}
             <button
+              id="tour-help-btn"
               type="button"
               onClick={onOpenTour}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-semibold text-neutral-700 transition-all shadow-2xs cursor-pointer"
-              title="Take the Interactive Walkthrough Tour"
+              className="p-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-500 hover:text-neutral-700 transition-all shadow-2xs cursor-pointer"
+              title="Help & Tour"
             >
-              <Compass className="w-3.5 h-3.5 text-brand-600" />
-              <span className="hidden sm:inline">Tour</span>
+              <HelpCircle className="w-3.5 h-3.5" />
             </button>
 
-            {/* 5. Beginner Guide Modal Button */}
-            <button
-              type="button"
-              onClick={onOpenGuide}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-semibold text-neutral-700 transition-all shadow-2xs cursor-pointer"
-              title="Beginner Guide: What every button does"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-neutral-500" />
-              <span className="hidden sm:inline">Guide</span>
-            </button>
-
-            {/* 6. Export Dropdown */}
+            {/* 5. Export Dropdown */}
             <div className="relative" ref={exportRef} id="export-btn">
               <button
                 type="button"

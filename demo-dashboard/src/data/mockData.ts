@@ -1,4 +1,4 @@
-import { Brand, PostItem, HeroKPIs, TimeSeriesDataPoint, AIInsight, PlatformType } from '../types';
+import { Brand, PostItem, HeroKPIs, MarketerHeroKPIs, ChannelPerformanceRow, TimeSeriesDataPoint, AIInsight, PlatformType } from '../types';
 
 export const ACTIVE_PLATFORMS: PlatformType[] = ['linkedin', 'x', 'instagram', 'facebook'];
 export const ALPHA_PLATFORMS: PlatformType[] = ['substack', 'reddit'];
@@ -366,6 +366,71 @@ export function computeDynamicHeroKPIs(selectedPlatforms: PlatformType[]): HeroK
   };
 }
 
+export function computeMarketerHeroKPIs(selectedPlatforms: PlatformType[]): MarketerHeroKPIs {
+  const activePlats = selectedPlatforms.filter((p) => ACTIVE_PLATFORMS.includes(p));
+  const effective = activePlats.length > 0 ? activePlats : ACTIVE_PLATFORMS;
+
+  let totalReach = 0;
+  let totalEngagements = 0;
+  let totalImpressions = 0;
+  let audienceNet = 0;
+
+  effective.forEach((p) => {
+    const kpi = PLATFORM_KPIS[p];
+    if (kpi) {
+      totalImpressions += kpi.gross_impressions;
+      if (kpi.unique_reach !== null) {
+        totalReach += kpi.unique_reach;
+      }
+      totalEngagements += kpi.total_engagements;
+      audienceNet += kpi.audience_growth.net_change;
+    }
+  });
+
+  const blendedER =
+    totalImpressions > 0
+      ? parseFloat(((totalEngagements / totalImpressions) * 100 * 0.5325).toFixed(2))
+      : 0;
+
+  return {
+    reach: { value: totalReach, change: 8.7 },
+    engagements: { value: totalEngagements, change: 22.4 },
+    engagement_rate: { value: blendedER, change: 0.8 },
+    followers_gained: { value: audienceNet, change: 12.5 },
+  };
+}
+
+export function computeChannelPerformanceTable(selectedPlatforms: PlatformType[]): ChannelPerformanceRow[] {
+  const channelMeta: Record<PlatformType, { name: string }> = {
+    linkedin: { name: 'LinkedIn' },
+    x: { name: 'X' },
+    instagram: { name: 'Instagram' },
+    facebook: { name: 'Facebook' },
+    substack: { name: 'Substack' },
+    reddit: { name: 'Reddit' },
+  };
+
+  const activePlats = selectedPlatforms.filter((p) => ACTIVE_PLATFORMS.includes(p));
+  const effective = activePlats.length > 0 ? activePlats : ACTIVE_PLATFORMS;
+
+  return effective.map((platform) => {
+    const kpi = PLATFORM_KPIS[platform];
+    const er =
+      kpi.gross_impressions > 0
+        ? parseFloat(((kpi.total_engagements / kpi.gross_impressions) * 100).toFixed(2))
+        : 0;
+    return {
+      platform,
+      name: channelMeta[platform].name,
+      impressions: kpi.gross_impressions,
+      reach: kpi.unique_reach,
+      engagements: kpi.total_engagements,
+      engagement_rate: er,
+      followers: kpi.audience_growth.net_change,
+    };
+  });
+}
+
 export function computeDynamicTimeSeries(selectedPlatforms: PlatformType[]): TimeSeriesDataPoint[] {
   const activePlats = selectedPlatforms.filter((p) => ACTIVE_PLATFORMS.includes(p));
   if (activePlats.length === 0 || activePlats.length === ACTIVE_PLATFORMS.length) {
@@ -378,34 +443,45 @@ export function computeDynamicTimeSeries(selectedPlatforms: PlatformType[]): Tim
     });
     const ratio = pt.impressions > 0 ? filteredImpressions / pt.impressions : 0;
     const filteredEngagements = Math.round(pt.engagements * ratio);
+    const filteredReach = Math.round((pt.reach ?? Math.round(pt.impressions * 0.68)) * ratio);
     const rate =
       filteredImpressions > 0
         ? parseFloat(((filteredEngagements / filteredImpressions) * 100).toFixed(1))
         : 0;
+    const prevImpressions = Math.round(filteredImpressions * 0.86);
+    const prevEngagements = Math.round(filteredEngagements * 0.82);
+    const prevReach = Math.round(filteredReach * 0.88);
+    const prevRate = parseFloat((rate * 0.94).toFixed(1));
+
     return {
       ...pt,
       impressions: filteredImpressions,
       engagements: filteredEngagements,
+      reach: filteredReach,
       rate,
+      prev_impressions: prevImpressions,
+      prev_engagements: prevEngagements,
+      prev_reach: prevReach,
+      prev_rate: prevRate,
     };
   });
 }
 
 export const TIME_SERIES_DATA: TimeSeriesDataPoint[] = [
-  { date: 'Oct 01', impressions: 4200, engagements: 340, rate: 4.6, by_platform: { linkedin: 1800, x: 1200, instagram: 700, facebook: 500, substack: 0, reddit: 0 } },
-  { date: 'Oct 03', impressions: 5100, engagements: 410, rate: 4.8, by_platform: { linkedin: 2200, x: 1400, instagram: 900, facebook: 600, substack: 0, reddit: 0 } },
-  { date: 'Oct 05', impressions: 6800, engagements: 590, rate: 5.2, by_platform: { linkedin: 3100, x: 1600, instagram: 1200, facebook: 900, substack: 0, reddit: 0 } },
-  { date: 'Oct 07', impressions: 4900, engagements: 380, rate: 4.5, by_platform: { linkedin: 2000, x: 1500, instagram: 800, facebook: 600, substack: 0, reddit: 0 } },
-  { date: 'Oct 09', impressions: 7400, engagements: 680, rate: 5.4, by_platform: { linkedin: 3400, x: 1900, instagram: 1300, facebook: 800, substack: 0, reddit: 0 } },
-  { date: 'Oct 11', impressions: 8900, engagements: 810, rate: 5.6, by_platform: { linkedin: 4100, x: 2100, instagram: 1600, facebook: 1100, substack: 0, reddit: 0 } },
-  { date: 'Oct 13', impressions: 6200, engagements: 490, rate: 4.7, by_platform: { linkedin: 2800, x: 1700, instagram: 1000, facebook: 700, substack: 0, reddit: 0 } },
-  { date: 'Oct 15', impressions: 9800, engagements: 920, rate: 5.8, by_platform: { linkedin: 4500, x: 2400, instagram: 1800, facebook: 1100, substack: 0, reddit: 0 } },
-  { date: 'Oct 17', impressions: 7100, engagements: 560, rate: 4.9, by_platform: { linkedin: 3200, x: 1800, instagram: 1200, facebook: 900, substack: 0, reddit: 0 } },
-  { date: 'Oct 19', impressions: 8400, engagements: 730, rate: 5.1, by_platform: { linkedin: 3800, x: 2100, instagram: 1500, facebook: 1000, substack: 0, reddit: 0 } },
-  { date: 'Oct 21', impressions: 11200, engagements: 1050, rate: 6.1, by_platform: { linkedin: 5200, x: 2700, instagram: 2100, facebook: 1200, substack: 0, reddit: 0 } },
-  { date: 'Oct 23', impressions: 9600, engagements: 860, rate: 5.4, by_platform: { linkedin: 4400, x: 2300, instagram: 1700, facebook: 1200, substack: 0, reddit: 0 } },
-  { date: 'Oct 25', impressions: 12400, engagements: 1180, rate: 6.3, by_platform: { linkedin: 5800, x: 2900, instagram: 2300, facebook: 1400, substack: 0, reddit: 0 } },
-  { date: 'Oct 26', impressions: 10800, engagements: 990, rate: 5.7, by_platform: { linkedin: 4900, x: 2600, instagram: 2000, facebook: 1300, substack: 0, reddit: 0 } },
+  { date: 'Oct 01', impressions: 4200, engagements: 340, reach: 2850, rate: 4.6, prev_impressions: 3600, prev_engagements: 280, prev_reach: 2500, prev_rate: 4.3, by_platform: { linkedin: 1800, x: 1200, instagram: 700, facebook: 500, substack: 0, reddit: 0 } },
+  { date: 'Oct 03', impressions: 5100, engagements: 410, reach: 3450, rate: 4.8, prev_impressions: 4300, prev_engagements: 335, prev_reach: 3000, prev_rate: 4.5, by_platform: { linkedin: 2200, x: 1400, instagram: 900, facebook: 600, substack: 0, reddit: 0 } },
+  { date: 'Oct 05', impressions: 6800, engagements: 590, reach: 4600, rate: 5.2, prev_impressions: 5800, prev_engagements: 480, prev_reach: 4000, prev_rate: 4.8, by_platform: { linkedin: 3100, x: 1600, instagram: 1200, facebook: 900, substack: 0, reddit: 0 } },
+  { date: 'Oct 07', impressions: 4900, engagements: 380, reach: 3300, rate: 4.5, prev_impressions: 4200, prev_engagements: 310, prev_reach: 2900, prev_rate: 4.2, by_platform: { linkedin: 2000, x: 1500, instagram: 800, facebook: 600, substack: 0, reddit: 0 } },
+  { date: 'Oct 09', impressions: 7400, engagements: 680, reach: 5000, rate: 5.4, prev_impressions: 6300, prev_engagements: 550, prev_reach: 4400, prev_rate: 5.0, by_platform: { linkedin: 3400, x: 1900, instagram: 1300, facebook: 800, substack: 0, reddit: 0 } },
+  { date: 'Oct 11', impressions: 8900, engagements: 810, reach: 6050, rate: 5.6, prev_impressions: 7600, prev_engagements: 660, prev_reach: 5300, prev_rate: 5.2, by_platform: { linkedin: 4100, x: 2100, instagram: 1600, facebook: 1100, substack: 0, reddit: 0 } },
+  { date: 'Oct 13', impressions: 6200, engagements: 490, reach: 4200, rate: 4.7, prev_impressions: 5300, prev_engagements: 400, prev_reach: 3700, prev_rate: 4.4, by_platform: { linkedin: 2800, x: 1700, instagram: 1000, facebook: 700, substack: 0, reddit: 0 } },
+  { date: 'Oct 15', impressions: 9800, engagements: 920, reach: 6650, rate: 5.8, prev_impressions: 8400, prev_engagements: 750, prev_reach: 5800, prev_rate: 5.4, by_platform: { linkedin: 4500, x: 2400, instagram: 1800, facebook: 1100, substack: 0, reddit: 0 } },
+  { date: 'Oct 17', impressions: 7100, engagements: 560, reach: 4800, rate: 4.9, prev_impressions: 6100, prev_engagements: 460, prev_reach: 4200, prev_rate: 4.6, by_platform: { linkedin: 3200, x: 1800, instagram: 1200, facebook: 900, substack: 0, reddit: 0 } },
+  { date: 'Oct 19', impressions: 8400, engagements: 730, reach: 5700, rate: 5.1, prev_impressions: 7200, prev_engagements: 600, prev_reach: 5000, prev_rate: 4.8, by_platform: { linkedin: 3800, x: 2100, instagram: 1500, facebook: 1000, substack: 0, reddit: 0 } },
+  { date: 'Oct 21', impressions: 11200, engagements: 1050, reach: 7600, rate: 6.1, prev_impressions: 9600, prev_engagements: 860, prev_reach: 6700, prev_rate: 5.7, by_platform: { linkedin: 5200, x: 2700, instagram: 2100, facebook: 1200, substack: 0, reddit: 0 } },
+  { date: 'Oct 23', impressions: 9600, engagements: 860, reach: 6500, rate: 5.4, prev_impressions: 8250, prev_engagements: 700, prev_reach: 5700, prev_rate: 5.0, by_platform: { linkedin: 4400, x: 2300, instagram: 1700, facebook: 1200, substack: 0, reddit: 0 } },
+  { date: 'Oct 25', impressions: 12400, engagements: 1180, reach: 8400, rate: 6.3, prev_impressions: 10600, prev_engagements: 970, prev_reach: 7400, prev_rate: 5.9, by_platform: { linkedin: 5800, x: 2900, instagram: 2300, facebook: 1400, substack: 0, reddit: 0 } },
+  { date: 'Oct 26', impressions: 10800, engagements: 990, reach: 7350, rate: 5.7, prev_impressions: 9300, prev_engagements: 810, prev_reach: 6450, prev_rate: 5.3, by_platform: { linkedin: 4900, x: 2600, instagram: 2000, facebook: 1300, substack: 0, reddit: 0 } },
 ];
 
 export const VELOCITY_72H_CURVE = [
