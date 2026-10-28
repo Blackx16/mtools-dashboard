@@ -1,0 +1,28 @@
+# Reverse-engineering dossiers & internal architecture specifications (DO NOT COMMIT)
+REVERSE_ENGINEERING.md
+METHODOLOGY.md
+analysis/
+mTools Technical Architecture Plan.md
+mTools Technical Architecture Plan.pdf
+API_SPECIFICATION.md
+DATABASE_SCHEMA.md
+ARCHITECTURE.md
+BRAND_AND_CONTENT_ENGINE.md
+
+# Dependencies & Build artifacts
+node_modules/
+demo-dashboard/node_modules/
+dist/
+demo-dashboard/dist/
+
+# Test / Browser QA temp artifacts
+demo-dashboard/test-results/
+demo-dashboard/playwright-report/
+
+# OS and system files
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
