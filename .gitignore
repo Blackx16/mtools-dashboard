@@ -1,15 +1,4 @@
-# Reverse-engineering dossiers & internal architecture specifications (DO NOT COMMIT)
-REVERSE_ENGINEERING.md
-METHODOLOGY.md
-analysis/
-mTools Technical Architecture Plan.md
-mTools Technical Architecture Plan.pdf
-API_SPECIFICATION.md
-DATABASE_SCHEMA.md
-ARCHITECTURE.md
-BRAND_AND_CONTENT_ENGINE.md
-
-# Dependencies & Build artifacts
+# Dependencies & Build artifacts (NEVER COMMIT)
 node_modules/
 demo-dashboard/node_modules/
 dist/
